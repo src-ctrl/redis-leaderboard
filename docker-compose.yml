@@ -1,26 +1,49 @@
 version: "3.7"
-
 services:
-  proxy:
-    image: traefik:v2.2
-    command:
-      - --api.insecure=true
-      - --providers.docker
+  app:
+    build:
+      args:
+        user: redis-leaderboard-app
+        uid: 1000
+      context: ./
+      dockerfile: Dockerfile
+    image: redis-leaderboard
+    container_name: redis-leaderboard-app
+    restart: unless-stopped
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+    networks:
+      - redis-leaderboard
+
+  db:
+    image: mysql:5.7
+    container_name: redis-leaderboard-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./mysql:/docker-entrypoint-initdb.d
+    networks:
+      - redis-leaderboard
+
+  nginx:
+    image: nginx:alpine
+    container_name: redis-leaderboard-nginx
+    restart: unless-stopped
     ports:
-      - 80:80
-      - 443:443
-      - 8080:8080
+      - "8000:80"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - redis-leaderboard
 
-  web:
-    image: nginx:latest
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web.rule=Host(`web.docker.localhost`)"
-    volumes:
-      - ./nginx/public:/public
-      - ./nginx/site.conf:/etc/nginx/conf.d/site.conf
-
-  
-  
+networks:
+  redis-leaderboard:
+    driver: bridge
