@@ -16,6 +16,27 @@ services:
     networks:
       - redis-leaderboard
 
+  nginx:
+    image: nginx:alpine
+    container_name: redis-leaderboard-nginx
+    restart: unless-stopped
+    ports:
+      - "8000:80"
+    volumes:
+      - ./:/var/www
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - redis-leaderboard
+         
+  redis:
+    image: redis:latest
+    container_name: redis-leaderboard-redis
+    restart: unless-stopped
+    volumes:
+      - ./redis:/data
+    networks:
+      - redis-leaderboard
+          
   db:
     image: mysql:5.7
     container_name: redis-leaderboard-db
@@ -29,18 +50,6 @@ services:
       SERVICE_NAME: mysql
     volumes:
       - ./mysql:/docker-entrypoint-initdb.d
-    networks:
-      - redis-leaderboard
-
-  nginx:
-    image: nginx:alpine
-    container_name: redis-leaderboard-nginx
-    restart: unless-stopped
-    ports:
-      - "8000:80"
-    volumes:
-      - ./:/var/www
-      - ./nginx:/etc/nginx/conf.d
     networks:
       - redis-leaderboard
 
