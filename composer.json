@@ -1,0 +1,12 @@
+{
+    "name": "src-ctrl/redis-leaderboard",
+    "authors": [
+        {
+            "name": "Tom Hughes",
+            "email": "33721645+src-ctrl@users.noreply.github.com"
+        }
+    ],
+    "require": {
+        "symfony/dotenv": "^5.1"
+    }
+}
